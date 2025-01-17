@@ -18,7 +18,7 @@ font pango:DejaVu Sans Mono 12
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec bash -c 'source ~/.bash_profile && i3-sensible-terminal'
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -70,7 +70,7 @@ bindsym $mod+Shift+space floating toggle
 bindsym $mod+b border toggle
 
 # change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
+#bindsym $mod+space focus mode_toggle
 
 # focus the parent container
 bindsym $mod+a focus parent
@@ -138,16 +138,35 @@ bindsym $mod+r mode "resize"
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
-# latest version installed via PIP
-    status_command /home/lord/.local/bin/py3status
+# latest version installed via `pipx` (not `pip`!)
+# Needs dependencies:
+# pipx install py3status
+# pipx inject py3status dbus-python
+# sudo apt install libcairo2-dev libgirepository1.0-dev
+# pipx inject py3status pygobject
+# See https://github.com/ultrabug/py3status/issues/2213
+
+    status_command ~/.local/bin/py3status
     output primary
     tray_output primary
+    position bottom
 }
 
 bar {
-    output nonprimary
-    tray_output none
+    output DP-1-1
+    tray_output bottom
 }
+
+bar {
+    output DP-3-3
+    tray_output bottom
+}
+
+bar {
+    output HDMI-1
+    tray_output bottom
+}
+
 
 bindsym $mod+x move workspace to output right
 bindsym $mod+u move workspace to output up
@@ -160,8 +179,9 @@ bindsym $mod+u move workspace to output up
 # We implement switching via i3 shortcut, so we can instantly update indicator for
 # i3status bar
 bindsym Mod1+space exec "/usr/local/bin/xkb-switch -n; ~/.local/bin/py3-cmd refresh keyboard_layout"
-exec_always "setxkbmap -layout us,ru -variant ,mac -option ctrl:nocaps"
-bindsym $mod+z exec "~/bin/cycle.sh /dev/shm/kbd2.txt 'setxkbmap -layout us,ru -variant ,mac -option ctrl:nocaps' 'setxkbmap -layout us,ua -option ctrl:nocaps' ; ~/.local/bin/py3-cmd refresh keyboard_layout"
+exec_always "setxkbmap -layout us,ua -option ctrl:nocaps"
+#exec_always "setxkbmap -layout us,ua -option ctrl:nocaps -option lv3:alt_switch"
+
 
 # Auto lock screen
 exec --no-startup-id xautolock -corners -+00 -cornerdelay 1 -time 9 -locker '~/bin/i3exit.sh lock' &
@@ -176,8 +196,8 @@ bindsym XF86AudioMicMute exec --no-startup-id "pactl set-source-mute $mic toggle
 
 # Brightness controls
 # https://github.com/philippnormann1337/xrandr-brightness-script
-bindsym XF86MonBrightnessUp exec ~/bin/brightness.sh + eDP-1
-bindsym XF86MonBrightnessDown exec ~/bin/brightness.sh - eDP-1
+bindsym XF86MonBrightnessUp exec sudo brightnessctl set +10%
+bindsym XF86MonBrightnessDown exec sudo brightnessctl set 10%-
 
 # Search as dmenu
 bindsym XF86Favorites exec rofi -theme solarized -font "hack 14" -show run
@@ -204,22 +224,24 @@ bindsym XF86Display exec ~/bin/set_monitor.sh
 exec --no-startup-id /usr/bin/nm-applet --sm-disable        # Network Manager
 exec --no-startup-id /usr/bin/blueman-applet                # Bluetooth Manager
 exec --no-startup-id /usr/bin/dropbox start -i              # Dropbox
-# autostart redshift ( https://www.matthiggins.dev/install-redshift-with-i3/ )
+# autostart redshift https://wiki.archlinux.org/title/redshift
+exec --no-startup-id /usr/libexec/geoclue-2.0/demos/agent
 exec --no-startup-id redshift-gtk
 
 # No window tite needed for some programs 
 for_window [class="^(?i)firefox"] border none
-for_window [class="^(?i)google-chrome"] border none
+for_window [class="^(?i)thunderbird"] border none
+for_window [class="^(?i)evolution"] border none
+for_window [class="^(?i)signal"] border none
 for_window [class="^(?i)emacs"] border none
-for_window [class="^(?i)rambox"] border none
-for_window [instance="mendeleydesktop" title="^Mendeley Desktop$"] floating disable
+for_window [class="^(?i)ferdium"] border none
 for_window [class="^(?i)pavucontrol"] floating enable
 
 # Lock screen via Ctrl+Alt+L
 bindsym $mod+Control+l exec "xkb-switch -s us ; i3lock -t -d -f -e --color=000000"
 
 # Screenshots using `fameshot`
-bindsym --release Print exec "flameshot gui -p  ~/Pictures/screenshots/"
+bindsym --release Print exec "flameshot gui"
 
 # Nautilus
 bindsym $mod+n exec nemo --no-desktop /home/lord/Dropbox
@@ -232,10 +254,11 @@ for_window [ title="^Pympress Content" ] border none floating disable
 # for_window [ title="^pdfpc.*" window_role="presentation" ] move to output right, fullscreen
 
 # Assign some apps to dedicated workspaces
-assign [class="^(?i)rambox"]  3
+assign [class="^(?i)ferdium"]  3
 assign [class="Emacs"]   2
 assign [class="Signal"]   5
 
 # Enable touch-click on Thinkpad X1 touchpad
-exec_always --no-startup-id xinput set-prop 'SYNA8006:00 06CB:CD8B Touchpad' 'libinput Tapping Enabled' 1
+exec_always --no-startup-id xinput set-prop 'SYNA8017:00 06CB:CEB2 Touchpad' 'libinput Tapping Enabled' 1
 
+exec --no-startup-id xsetroot -solid "#333333"

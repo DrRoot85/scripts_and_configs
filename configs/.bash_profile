@@ -14,7 +14,8 @@ ${HOME}/.local/bin
 /opt/local/sbin
 ${HOME}/.cabal/bin
 ${HOME}/.cask/bin
-/usr/local/Cellar/llvm/7.0.0/bin/"
+/usr/local/Cellar/llvm/7.0.0/bin/
+${HOME}/go/bin"
 
 extramanpaths="${HOME}/man
 /usr/man
@@ -217,37 +218,47 @@ then
   fi
 fi
 
-export PATH="$HOME/.cargo/bin:$PATH"
 
 if command -v ag &> /dev/null
 then
   alias ag='\ag --pager="less -XFR"'
 fi
 
-if command -v exa &> /dev/null
+if command -v batcat &> /dev/null
 then
-    export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-    alias ag='\ag --pager="bat -p"'
-    alias less="bat"
+    BAT_CMD="batcat"
+    alias bat="batcat"
+elif command -v bat &> /dev/null
+then
+    BAT_CMD="bat"
 else
-    #colorized man pages
-    man() {
-        env \
-            LESS_TERMCAP_mb=$(printf "\e[1;31m") \
-            LESS_TERMCAP_md=$(printf "\e[1;31m") \
-            LESS_TERMCAP_me=$(printf "\e[0m") \
-            LESS_TERMCAP_se=$(printf "\e[0m") \
-            LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
-            LESS_TERMCAP_ue=$(printf "\e[0m") \
-            LESS_TERMCAP_us=$(printf "\e[1;32m") \
-            man "$@"
-    }
+    BAT_CMD=""
 fi
 
-if command -v exa &> /dev/null
+if [ -n "$BAT_CMD" ]
 then
-    alias ls="exa"
-    alias ll="exa -snew -l"
+    alias less="$BAT_CMD"
+    export MANPAGER="sh -c 'col -bx | $BAT_CMD -l man -p'"
+    export MANROFFOPT="-c"
+    alias ag='\ag --pager="$BAT_CMD -p"'
+fi
+
+if command -v eza &> /dev/null
+then
+    # Use `eza` if present https://github.com/eza-community/eza
+    LS_CMD="eza"
+elif command -v exa &> /dev/null
+then
+    # fall back to `exa` (seems to be unmaintained) https://the.exa.website/
+    LS_CMD="exa"
+else
+    LS_CMD=""
+fi
+
+if [ -n "$LS_CMD" ]
+then
+    alias ls="$LS_CMD"
+    alias ll="$LS_CMD -snew -l"
 else
     alias ll="ls -lFtr"
 fi
@@ -263,3 +274,10 @@ fi
 if [[ $OSTYPE == 'darwin'* ]]; then
     export BASH_SILENCE_DEPRECATION_WARNING=1
 fi
+. "$HOME/.cargo/env"
+
+if [ -x "/usr/bin/wezterm" ]; then
+    export TERMINAL="/usr/bin/wezterm"
+fi
+
+source /home/lord/.config/broot/launcher/bash/br
